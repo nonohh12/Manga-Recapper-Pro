@@ -136,7 +136,7 @@ class VideoAssembler:
             tts_duration = self._get_audio_duration(tts_path)
 
             # If TTS is longer than scene, speed it up slightly
-            if tts_duration > scene_duration:
+            if tts_duration > scene_duration and scene_duration > 0:
                 speed_factor = tts_duration / scene_duration
                 # Limit speed to reasonable range
                 speed_factor = min(max(speed_factor, 0.8), 1.3)
@@ -150,9 +150,9 @@ class VideoAssembler:
                 "-i", str(clip),
                 "-i", str(tts_path),
                 "-filter_complex",
-                f"[1:a]{atempo}[a];[0:v][a]volume=2.0[aout]",
-                "-map", "[aout]",
-                "-map", "0:v",
+                f"[1:a]{atempo},volume=2.0[aout]",  # FIXED: Applied filters to audio stream only
+                "-map", "0:v",                      # FIXED: Video stream map First
+                "-map", "[aout]",                   # FIXED: Audio stream map Second
                 "-c:v", "copy",
                 "-c:a", "aac", "-b:a", "192k",
                 "-shortest",
@@ -177,8 +177,8 @@ class VideoAssembler:
 
         with open(concat_file, "w") as f:
             for clip in clips:
-                f.write(f"file '{clip}'\n")
-
+                # FIXED: Force absolute pathing to avoid ffmpeg No Such File errors
+                f.write(f"file '{clip.absolute()}'\n")
 
         output = self.output_dir / f"{output_name}_{fmt.name}.mp4"
 
