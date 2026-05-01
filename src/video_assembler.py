@@ -79,14 +79,17 @@ class VideoAssembler:
             output = self.work_dir / f"scene_clip_{i:03d}.mp4"
 
             # Build video filter
-            vf_parts = [fmt.crop_filter]
+            vf_parts = []
 
-            # Add watermark removal
+            # FIXED: Add watermark removal FIRST (on original dimensions)
             if watermark_regions:
                 for region in watermark_regions:
                     x, y, w, h = region["x"], region["y"], region["w"], region["h"]
-                    # Scale coordinates if needed
                     vf_parts.append(f"delogo=x={x}:y={y}:w={w}:h={h}")
+
+            # FIXED: Add scaling/cropping AFTER removing watermarks
+            if fmt.crop_filter:
+                vf_parts.append(fmt.crop_filter)
 
             vf = ",".join(vf_parts)
 
