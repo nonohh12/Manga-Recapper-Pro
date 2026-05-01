@@ -10,6 +10,8 @@ numpy>=1.24.0
 # TTS - Kokoro (primary) with fallback
 kokoro>=0.9.4
 soundfile>=0.12.1
+torchcodec>=0.1.0
+
 
 # Whisper for transcription
 openai-whisper>=20231117
