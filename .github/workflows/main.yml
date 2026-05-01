@@ -1,0 +1,76 @@
+name: 🎬 Manga Recapper Pro - Temporal Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'YouTube Video Link'
+        required: true
+      output_formats:
+        description: 'Output formats (space separated: youtube youtube_shorts instagram tiktok facebook)'
+        required: false
+        default: 'youtube youtube_shorts instagram'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: 📂 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Deno (Challenge Solver)
+        run: |
+          curl -fsSL https://deno.land/x/install/install.sh | sh
+          echo "/home/runner/.deno/bin" >> $GITHUB_PATH
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🔧 Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng
+
+      - name: 📦 Install Python Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🏭 Run Recapper Pipeline (TEST MODE - 4min)
+        env:
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
+        run: |
+          export PATH="/home/runner/.deno/bin:$PATH"
+          cd src
+          python main_pipeline.py "${{ github.event.inputs.video_url }}" --formats ${{ github.event.inputs.output_formats }}
+
+      - name: 📤 Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manga-recap-outputs
+          path: output/
+          retention-days: 5
+
+      - name: 📊 Pipeline Summary
+        if: always()
+        run: |
+          echo "## 🎬 Manga Recapper Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d "output" ]; then
+            echo "| Format | File | Size |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|------|------|" >> $GITHUB_STEP_SUMMARY
+            for f in output/*.mp4; do
+              if [ -f "$f" ]; then
+                size=$(du -h "$f" | cut -f1)
+                name=$(basename "$f")
+                echo "| ${name%.*} | $name | $size |" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          else
+            echo "❌ No output generated" >> $GITHUB_STEP_SUMMARY
+          fi

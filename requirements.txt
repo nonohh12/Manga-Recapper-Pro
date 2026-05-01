@@ -1,0 +1,23 @@
+# Core dependencies
+yt-dlp>=2024.12.0
+requests>=2.31.0
+
+# Audio/Video processing
+ffmpeg-python>=0.2.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# TTS - Kokoro (primary) with fallback
+kokoro>=0.9.4
+soundfile>=0.12.1
+
+# Whisper for transcription
+openai-whisper>=20231117
+
+# Scene detection
+scenedetect[opencv]>=0.6.0
+
+# Utilities
+torch>=2.0.0
+torchaudio>=2.0.0
+pillow>=10.0.0
