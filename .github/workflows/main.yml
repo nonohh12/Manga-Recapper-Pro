@@ -40,6 +40,9 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: 🎙️ Setup Voice Models
+        run: bash setup_kokoro.sh
+
       - name: 🏭 Run Recapper Pipeline (TEST MODE - 4min)
         env:
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
